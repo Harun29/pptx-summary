@@ -109,7 +109,7 @@ const UploadPage = () => {
     <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-300">
   <div className="w-full max-w-lg p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
     <h1 className="text-3xl font-extrabold text-gray-900 text-center mb-4">
-    Čola Biljeske AI
+    Čola Bilješke AI
     </h1>
     <h2 className="text-xl font-medium text-gray-700 text-center mb-6">
       Upload Your Presentation
