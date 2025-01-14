@@ -1,5 +1,6 @@
 "use client";
 
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Check, Copy } from "lucide-react";
 import OpenAI from "openai";
 import { useState } from "react";
@@ -14,6 +15,7 @@ const UploadPage = () => {
   const [summary, setSummary] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const [summarySize, setSummarySize] = useState("5-7");
 
   const handleCopy = () => {
     if (summary) {
@@ -41,7 +43,7 @@ const UploadPage = () => {
             content: `
               Ti si stručnjak za pravljenje bilješki. Analiziraj sadržaj sljedeće prezentacije i sažmi ga prema sljedećoj strukturi:
               Cilj teme: Jasno navedi glavni cilj ili svrhu teme iz prezentacije. Koristi 1–2 rečenice koje sažimaju suštinu.
-              Sažetak: Sažmi ključne tačke prezentacije u 5–7 rečenica (5-7 rijeci u recenici maksimalno). Fokusiraj se na najvažnije informacije i ideje.
+              Sažetak: Sažmi ključne tačke prezentacije u ${summarySize} rečenica (5-7 rijeci u recenici maksimalno). Fokusiraj se na najvažnije informacije i ideje.
               Pitanja: Formuliši 3–4 pitanja koja mogu podstaći diskusiju ili pomoći u boljem razumijevanju prezentacije. Pitanja trebaju biti direktno vezana za sadržaj.
               Jasno/Nejasno:
               Jasno: Identificiraj 1–2 koncepta ili dijela koji su jasno objašnjeni i lako razumljivi.
@@ -116,6 +118,10 @@ const UploadPage = () => {
     }
   };
 
+  const handleSummarySizeChange = (value: string) => {
+    setSummarySize(value);
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-gray-100 to-gray-300">
       <header className="w-full py-4 bg-blue-600 text-white text-center shadow-md">
@@ -144,7 +150,32 @@ const UploadPage = () => {
                file:bg-blue-100 file:text-blue-600
                hover:file:bg-blue-200 cursor-pointer"
           />
-
+          <div className="w-full space-y-4 mt-4">
+            <span>Odaberi velicinu kratkog sadrzaja:</span>
+            <ToggleGroup type="single" value={summarySize} onValueChange={handleSummarySizeChange}>
+              <ToggleGroupItem
+              variant="outline"
+                value="5-7"
+                className="py-2"
+              >
+                S (5 do 7 rečenica)
+              </ToggleGroupItem>
+              <ToggleGroupItem
+              variant="outline"
+                value="7-10"
+                className="py-2"
+              >
+                M (7 do 10 rečenica)
+              </ToggleGroupItem>
+              <ToggleGroupItem
+              variant="outline"
+                value="10-15"
+                className="py-2"
+              >
+                L (10 do 15 rečenica)
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
           <button
             onClick={handleUpload}
             disabled={loading}
@@ -161,7 +192,9 @@ const UploadPage = () => {
           {summary && (
             <div className="mt-8">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-semibold text-gray-800">Bilješke</h3>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Bilješke
+                </h3>
                 <button
                   onClick={handleCopy}
                   className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
