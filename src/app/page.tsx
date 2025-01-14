@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, Copy } from "lucide-react";
 import OpenAI from "openai";
 import { useState } from "react";
 
@@ -12,6 +13,15 @@ const UploadPage = () => {
   const [file, setFile] = useState<File | null>(null);
   const [summary, setSummary] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [copySuccess, setCopySuccess] = useState<boolean>(false);
+
+  const handleCopy = () => {
+    if (summary) {
+      navigator.clipboard.writeText(summary);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -79,11 +89,13 @@ const UploadPage = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      // Send file to FastAPI backend
-      const response = await fetch("https://dcs-fastapi-production.up.railway.app/extractContent", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        "https://dcs-fastapi-production.up.railway.app/extractContent",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to extract content");
@@ -92,7 +104,6 @@ const UploadPage = () => {
       const data = await response.json();
       const extractedContent = data.content;
 
-      // Send extracted content to OpenAI for summary
       const aiResponse = await getAiSummarisation(extractedContent);
       if (!aiResponse) {
         throw new Error("Failed to get AI summary");
@@ -106,54 +117,79 @@ const UploadPage = () => {
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-300">
-  <div className="w-full max-w-lg p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-    <h1 className="text-3xl font-extrabold text-gray-900 text-center mb-4">
-    Čola Bilješke AI
-    </h1>
-    <h2 className="text-xl font-medium text-gray-700 text-center mb-6">
-      Upload Your Presentation
-    </h2>
+    <div className="h-screen flex flex-col bg-gradient-to-br from-gray-100 to-gray-300">
+      <header className="w-full py-4 bg-blue-600 text-white text-center shadow-md">
+        <h1 className="text-2xl font-bold">Čola Bilješke AI</h1>
+        <p className="text-sm font-medium">
+          Your AI Assistant for Quick Summaries
+        </p>
+      </header>
 
-    <input
-      disabled={loading}
-      type="file"
-      accept=".pptx, .pdf"
-      onChange={handleFileChange}
-      className="block w-full text-sm text-gray-700 
-                 file:py-3 file:px-4
-                 file:rounded-lg file:border-0
-                 file:text-sm file:font-semibold
-                 file:bg-blue-100 file:text-blue-600
-                 hover:file:bg-blue-200 cursor-pointer"
-    />
+      <main className="flex-grow flex items-center justify-center px-4">
+        <div className="w-full max-w-lg p-6 bg-white rounded-2xl shadow-lg border border-gray-200">
+          <h1 className="text-3xl font-extrabold text-gray-900 text-center mb-4">
+            Upload Your Presentation
+          </h1>
+          <h2 className="text-xl font-medium text-gray-700 text-center mb-6">
+            Get a concise summary in seconds
+          </h2>
 
-    <button
-      onClick={handleUpload}
-      disabled={loading}
-      className={`mt-6 w-full py-3 px-6 text-white font-semibold rounded-xl transition-all 
-                  ${
-                    loading
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200"
-                  }`}
-    >
-      {loading ? "Processing..." : "Get Summary"}
-    </button>
+          <input
+            disabled={loading}
+            type="file"
+            accept=".pptx, .pdf"
+            onChange={handleFileChange}
+            className="block w-full text-sm text-gray-700 
+                   file:py-3 file:px-4
+                   file:rounded-lg file:border-0
+                   file:text-sm file:font-semibold
+                   file:bg-blue-100 file:text-blue-600
+                   hover:file:bg-blue-200 cursor-pointer"
+          />
 
-    {summary && (
-      <div className="mt-8">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">Summary</h3>
-        <textarea
-          className="p-4 bg-gray-50 rounded-lg text-sm text-gray-900 w-full h-[300px] resize-none shadow-inner focus:outline-none border border-gray-300"
-          value={summary}
-          readOnly
-        />
-      </div>
-    )}
-  </div>
-</div>
+          <button
+            onClick={handleUpload}
+            disabled={loading}
+            className={`mt-6 w-full py-3 px-6 text-white font-semibold rounded-xl transition-all 
+                    ${
+                      loading
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200"
+                    }`}
+          >
+            {loading ? "Processing..." : "Get Summary"}
+          </button>
 
+          {summary && (
+            <div className="mt-8">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-lg font-semibold text-gray-800">Summary</h3>
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
+                >
+                  {!copySuccess ? (
+                    <Copy className="w-4 h-4" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+              <textarea
+                className="p-4 bg-gray-50 rounded-lg text-sm text-gray-900 w-full h-[300px] resize-none shadow-inner focus:outline-none border border-gray-300"
+                value={summary}
+                readOnly
+              />
+            </div>
+          )}
+        </div>
+      </main>
+
+      <footer className="w-full py-4 bg-gray-800 text-white text-center text-sm">
+        <p>© 2025 Čola Bilješke AI. All Rights Reserved.</p>
+        <p>Built for FSK students.</p>
+      </footer>
+    </div>
   );
 };
 
