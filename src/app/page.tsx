@@ -10,7 +10,6 @@ const openai = new OpenAI({
 
 const UploadPage = () => {
   const [file, setFile] = useState<File | null>(null);
-  const [content, setContent] = useState<string>("");
   const [summary, setSummary] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -92,7 +91,6 @@ const UploadPage = () => {
 
       const data = await response.json();
       const extractedContent = data.content;
-      setContent(extractedContent);
 
       // Send extracted content to OpenAI for summary
       const aiResponse = await getAiSummarisation(extractedContent);
