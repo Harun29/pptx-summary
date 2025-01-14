@@ -120,18 +120,16 @@ const UploadPage = () => {
     <div className="h-screen flex flex-col bg-gradient-to-br from-gray-100 to-gray-300">
       <header className="w-full py-4 bg-blue-600 text-white text-center shadow-md">
         <h1 className="text-2xl font-bold">Čola Bilješke AI</h1>
-        <p className="text-sm font-medium">
-          Your AI Assistant for Quick Summaries
-        </p>
+        <p className="text-sm font-medium">Vaš AI asistent za brze sažetke</p>
       </header>
 
       <main className="flex-grow flex items-center justify-center px-4">
         <div className="w-full max-w-lg p-6 bg-white rounded-2xl shadow-lg border border-gray-200">
           <h1 className="text-3xl font-extrabold text-gray-900 text-center mb-4">
-            Upload Your Presentation
+            Postavite svoju prezentaciju
           </h1>
           <h2 className="text-xl font-medium text-gray-700 text-center mb-6">
-            Get a concise summary in seconds
+            Dobijte bilješke u nekoliko sekundi
           </h2>
 
           <input
@@ -140,30 +138,30 @@ const UploadPage = () => {
             accept=".pptx, .pdf"
             onChange={handleFileChange}
             className="block w-full text-sm text-gray-700 
-                   file:py-3 file:px-4
-                   file:rounded-lg file:border-0
-                   file:text-sm file:font-semibold
-                   file:bg-blue-100 file:text-blue-600
-                   hover:file:bg-blue-200 cursor-pointer"
+               file:py-3 file:px-4
+               file:rounded-lg file:border-0
+               file:text-sm file:font-semibold
+               file:bg-blue-100 file:text-blue-600
+               hover:file:bg-blue-200 cursor-pointer"
           />
 
           <button
             onClick={handleUpload}
             disabled={loading}
             className={`mt-6 w-full py-3 px-6 text-white font-semibold rounded-xl transition-all 
-                    ${
-                      loading
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200"
-                    }`}
+                ${
+                  loading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200"
+                }`}
           >
-            {loading ? "Processing..." : "Get Summary"}
+            {loading ? "Obrada..." : "Dobij bilješke"}
           </button>
 
           {summary && (
             <div className="mt-8">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-semibold text-gray-800">Summary</h3>
+                <h3 className="text-lg font-semibold text-gray-800">Bilješke</h3>
                 <button
                   onClick={handleCopy}
                   className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
@@ -186,8 +184,8 @@ const UploadPage = () => {
       </main>
 
       <footer className="w-full py-4 bg-gray-800 text-white text-center text-sm">
-        <p>© 2025 Čola Bilješke AI. All Rights Reserved.</p>
-        <p>Built for FSK students.</p>
+        <p>© 2025 Čola Bilješke AI. Sva prava zadržana.</p>
+        <p>Napravljeno za FSK studente.</p>
       </footer>
     </div>
   );
