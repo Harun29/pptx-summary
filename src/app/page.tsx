@@ -116,6 +116,7 @@ const UploadPage = () => {
     </h2>
 
     <input
+      disabled={loading}
       type="file"
       accept=".pptx, .pdf"
       onChange={handleFileChange}
