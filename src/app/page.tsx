@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Check, Copy, MoonIcon, SunIcon } from "lucide-react";
 import OpenAI from "openai";
@@ -135,9 +136,8 @@ const UploadPage = () => {
         document.documentElement.classList.remove("dark");
       }
     } else {
-      // Default to dark theme
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
     }
   }, []);
 
@@ -155,25 +155,20 @@ const UploadPage = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background">
-      <header className="w-full py-4 bg-blue-600 text-white text-center shadow-md">
-        <h1 className="text-2xl font-bold">Čola Bilješke AI</h1>
-        <p className="text-sm font-medium">Vaš AI asistent za brze sažetke</p>
-        <div className="absolute top-4 right-4">
-          {theme === "dark" ? (
-            <MoonIcon
-              size={24}
-              strokeWidth={1}
-              onClick={handleThemeChange}
-              className="transition-transform transform hover:scale-125 duration-300 ease-in-out"
-            />
-          ): 
-            <SunIcon
-              size={24}
-              strokeWidth={1}
-              onClick={handleThemeChange}
-              className="transition-transform transform hover:scale-125 duration-300 ease-in-out"
-            />
-          }
+      <header className="w-full py-4 bg-blue-600 text-white shadow-md relative">
+        <div className="container mx-auto flex items-center justify-between px-6">
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-wide">Čola Bilješke AI</h1>
+            <p className="text-sm font-medium">Vaš AI asistent za brze sažetke</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleThemeChange}
+            className="rounded-full hover:scale-110 transition-transform"
+          >
+            {theme === "dark" ? <MoonIcon size={24} /> : <SunIcon size={24} />}
+          </Button>
         </div>
       </header>
 
@@ -216,18 +211,13 @@ const UploadPage = () => {
               </ToggleGroupItem>
             </ToggleGroup>
           </div>
-          <button
+          <Button
             onClick={handleUpload}
             disabled={loading}
-            className={`mt-6 w-full py-3 px-6 text-white font-semibold rounded-xl transition-all 
-                ${
-                  loading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200"
-                }`}
+            className="mt-6 w-full py-3 px-6 font-semibold"
           >
             {loading ? "Obrada..." : "Dobij bilješke"}
-          </button>
+          </Button>
 
           {summary && (
             <div className="mt-8">
