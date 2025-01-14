@@ -1,101 +1,161 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import OpenAI from "openai";
+import { useState } from "react";
+
+const openai = new OpenAI({
+  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+  dangerouslyAllowBrowser: true,
+});
+
+const UploadPage = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [content, setContent] = useState<string>("");
+  const [summary, setSummary] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const getAiSummarisation = async (message: string) => {
+    if (message.trim() === "") return;
+
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `
+              Ti si stručnjak za pravljenje bilješki. Analiziraj sadržaj sljedeće prezentacije i sažmi ga prema sljedećoj strukturi:
+              Cilj teme: Jasno navedi glavni cilj ili svrhu teme iz prezentacije. Koristi 1–2 rečenice koje sažimaju suštinu.
+              Sažetak: Sažmi ključne tačke prezentacije u 5–7 rečenica (5-7 rijeci u recenici maksimalno). Fokusiraj se na najvažnije informacije i ideje.
+              Pitanja: Formuliši 3–4 pitanja koja mogu podstaći diskusiju ili pomoći u boljem razumijevanju prezentacije. Pitanja trebaju biti direktno vezana za sadržaj.
+              Jasno/Nejasno:
+              Jasno: Identificiraj 1–2 koncepta ili dijela koji su jasno objašnjeni i lako razumljivi.
+              Nejasno: Identificiraj 1–2 kompleksne ili manje objašnjene tačke koje bi zahtijevale dodatna pojašnjenja.
+              Komentari i prijedlozi: Ponudi konstruktivne komentare vezane za stil prezentacije, vizualni prikaz ili tehničke aspekte (npr. formatiranje, čitljivost). Predloži poboljšanja ako je potrebno.
+              Format Izlaza:
+              Cilj teme: [Tvoj odgovor]
+              Sažetak: [Tvoj odgovor]
+              Pitanja:
+              [Pitanje 1]
+              [Pitanje 2]
+              [Pitanje 3]
+              Jasno:
+              [Jasno objašnjen koncept]
+              [Jasno objašnjen koncept]
+              Nejasno:
+              [Nejasno objašnjen koncept]
+              [Nejasno objašnjen koncept]
+              Komentari i prijedlozi: [Tvoje povratne informacije i prijedlozi]
+            `,
+          },
+          {
+            role: "user",
+            content: message,
+          },
+        ],
+      });
+
+      if (!response.choices || response.choices.length === 0) {
+        throw new Error("Failed to get AI message");
+      }
+
+      const aiMessage = response.choices[0].message.content;
+      return aiMessage || undefined;
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // Send file to FastAPI backend
+      const response = await fetch("http://127.0.0.1:8000/extractContent", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to extract content");
+      }
+
+      const data = await response.json();
+      const extractedContent = data.content;
+      setContent(extractedContent);
+
+      // Send extracted content to OpenAI for summary
+      const aiResponse = await getAiSummarisation(extractedContent);
+      if (!aiResponse) {
+        throw new Error("Failed to get AI summary");
+      }
+      setSummary(aiResponse as string);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-300">
+  <div className="w-full max-w-lg p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+    <h1 className="text-3xl font-extrabold text-gray-900 text-center mb-4">
+    Čola Biljeske AI
+    </h1>
+    <h2 className="text-xl font-medium text-gray-700 text-center mb-6">
+      Upload Your Presentation
+    </h2>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    <input
+      type="file"
+      accept=".pptx, .pdf"
+      onChange={handleFileChange}
+      className="block w-full text-sm text-gray-700 
+                 file:py-3 file:px-4
+                 file:rounded-lg file:border-0
+                 file:text-sm file:font-semibold
+                 file:bg-blue-100 file:text-blue-600
+                 hover:file:bg-blue-200 cursor-pointer"
+    />
+
+    <button
+      onClick={handleUpload}
+      disabled={loading}
+      className={`mt-6 w-full py-3 px-6 text-white font-semibold rounded-xl transition-all 
+                  ${
+                    loading
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200"
+                  }`}
+    >
+      {loading ? "Processing..." : "Get Summary"}
+    </button>
+
+    {summary && (
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">Summary</h3>
+        <textarea
+          className="p-4 bg-gray-50 rounded-lg text-sm text-gray-900 w-full h-[300px] resize-none shadow-inner focus:outline-none border border-gray-300"
+          value={summary}
+          readOnly
+        />
+      </div>
+    )}
+  </div>
+</div>
+
   );
-}
+};
+
+export default UploadPage;
