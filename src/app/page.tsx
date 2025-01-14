@@ -1,9 +1,9 @@
 "use client";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, MoonIcon, SunIcon } from "lucide-react";
 import OpenAI from "openai";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
@@ -16,6 +16,7 @@ const UploadPage = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [summarySize, setSummarySize] = useState("5-7");
+  const [theme, setTheme] = useState("dark");
 
   const handleCopy = () => {
     if (summary) {
@@ -124,19 +125,64 @@ const UploadPage = () => {
     }
   };
 
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      setTheme(savedTheme);
+      if (savedTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    } else {
+      // Default to dark theme
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    }
+  }, []);
+
+  const handleThemeChange = () => {
+    if (theme === "light") {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+      setTheme("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+      setTheme("light");
+    }
+  };
+
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-gray-100 to-gray-300">
+    <div className="h-screen flex flex-col bg-background">
       <header className="w-full py-4 bg-blue-600 text-white text-center shadow-md">
         <h1 className="text-2xl font-bold">Čola Bilješke AI</h1>
         <p className="text-sm font-medium">Vaš AI asistent za brze sažetke</p>
+        <div className="absolute top-4 right-4">
+          {theme === "dark" ? (
+            <MoonIcon
+              size={24}
+              strokeWidth={1}
+              onClick={handleThemeChange}
+              className="transition-transform transform hover:scale-125 duration-300 ease-in-out"
+            />
+          ): 
+            <SunIcon
+              size={24}
+              strokeWidth={1}
+              onClick={handleThemeChange}
+              className="transition-transform transform hover:scale-125 duration-300 ease-in-out"
+            />
+          }
+        </div>
       </header>
 
-      <main className="flex-grow flex items-center justify-center px-4">
-        <div className="w-full max-w-lg p-6 bg-white rounded-2xl shadow-lg border border-gray-200">
-          <h1 className="text-3xl font-extrabold text-gray-900 text-center mb-4">
+      <main className="flex-grow flex items-center justify-center px-4 my-4">
+        <div className="w-full max-w-lg p-6 bg-background rounded-2xl shadow-lg border border-border">
+          <h1 className="text-3xl font-extrabold text-primary text-center mb-4">
             Postavite svoju prezentaciju
           </h1>
-          <h2 className="text-xl font-medium text-gray-700 text-center mb-6">
+          <h2 className="text-xl font-medium text-primary text-center mb-6">
             Dobijte bilješke u nekoliko sekundi
           </h2>
 
@@ -145,7 +191,7 @@ const UploadPage = () => {
             type="file"
             accept=".pptx, .pdf"
             onChange={handleFileChange}
-            className="block w-full text-sm text-gray-700 
+            className="block w-full text-sm text-muted-foreground 
                file:py-3 file:px-4
                file:rounded-lg file:border-0
                file:text-sm file:font-semibold
@@ -153,19 +199,19 @@ const UploadPage = () => {
                hover:file:bg-blue-200 cursor-pointer"
           />
           <div className="w-full space-y-4 mt-4">
-            <span>Odaberi velicinu sažetka:</span>
+            <span className="text-primary">Odaberi velicinu sažetka:</span>
             <ToggleGroup
               type="single"
               value={summarySize}
               onValueChange={handleSummarySizeChange}
             >
-              <ToggleGroupItem variant="outline" value="5-7" className={`py-2 h-15 ${summarySize === "5-7" ? "!bg-blue-600 !text-white" : ""}`}>
+              <ToggleGroupItem variant="outline" value="5-7" className={`py-2 h-15 ${summarySize === "5-7" ? "!bg-blue-600 !text-white" : "!bg-background !text-primary"}`}>
                 S (5 do 7 rečenica)
               </ToggleGroupItem>
-              <ToggleGroupItem variant="outline" value="7-10" className={`py-2 h-15 ${summarySize === "7-10" ? "!bg-blue-600 !text-white" : ""}`}>
+              <ToggleGroupItem variant="outline" value="7-10" className={`py-2 h-15 ${summarySize === "7-10" ? "!bg-blue-600 !text-white" : "!bg-background !text-primary"}`}>
                 M (7 do 10 rečenica)
               </ToggleGroupItem>
-              <ToggleGroupItem variant="outline" value="10-15" className={`py-2 h-15 ${summarySize === "10-15" ? "!bg-blue-600 !text-white" : ""}`}>
+              <ToggleGroupItem variant="outline" value="10-15" className={`py-2 h-15 ${summarySize === "10-15" ? "!bg-blue-600 !text-white" : "!bg-background !text-primary"}`}>
                 L (10 do 15 rečenica)
               </ToggleGroupItem>
             </ToggleGroup>
@@ -186,7 +232,7 @@ const UploadPage = () => {
           {summary && (
             <div className="mt-8">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-semibold text-gray-800">
+                <h3 className="text-lg font-semibold text-muted-primary">
                   Bilješke
                 </h3>
                 <button
@@ -201,7 +247,7 @@ const UploadPage = () => {
                 </button>
               </div>
               <textarea
-                className="p-4 bg-gray-50 rounded-lg text-sm text-gray-900 w-full h-[300px] resize-none shadow-inner focus:outline-none border border-gray-300"
+                className="p-4 bg-muted rounded-lg text-sm text-primary w-full h-[300px] resize-none shadow-inner focus:outline-none border border-border"
                 value={summary}
                 readOnly
               />
