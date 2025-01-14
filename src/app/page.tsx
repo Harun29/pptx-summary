@@ -80,7 +80,7 @@ const UploadPage = () => {
       formData.append("file", file);
 
       // Send file to FastAPI backend
-      const response = await fetch("http://127.0.0.1:8000/extractContent", {
+      const response = await fetch("https://dcs-fastapi-production.up.railway.app/extractContent", {
         method: "POST",
         body: formData,
       });
