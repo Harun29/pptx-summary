@@ -22,10 +22,10 @@ const UploadPage = () => {
   const [theme, setTheme] = useState("light");
 
   useEffect(() => {
-    const summarySizeArray = summarySize.split("-")
-    setMinSentences(summarySizeArray[0])
-    setMaxSentences(summarySizeArray[1])
-  }, [summarySize])
+    const summarySizeArray = summarySize.split("-");
+    setMinSentences(summarySizeArray[0]);
+    setMaxSentences(summarySizeArray[1]);
+  }, [summarySize]);
 
   const handleCopy = () => {
     if (summary) {
@@ -166,17 +166,27 @@ const UploadPage = () => {
       <header className="w-full py-4 bg-blue-600 text-white shadow-md relative">
         <div className="container mx-auto flex items-center justify-between px-6">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-wide">Čola Bilješke AI</h1>
-            <p className="text-sm font-medium">Vaš AI asistent za brze sažetke</p>
+            <h1 className="text-3xl font-extrabold tracking-wide">
+              Čola Bilješke AI
+            </h1>
+            <p className="text-sm font-medium">
+              Vaš AI asistent za brze sažetke
+            </p>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleThemeChange}
-            className="rounded-full hover:scale-110 transition-transform"
-          >
-            {theme === "dark" ? <MoonIcon size={24} /> : <SunIcon size={24} />}
-          </Button>
+
+          {theme === "dark" ? (
+            <MoonIcon
+              onClick={handleThemeChange}
+              className="rounded-full hover:scale-110 transition-transform cursor-pointer"
+              size={24}
+            />
+          ) : (
+            <SunIcon
+              onClick={handleThemeChange}
+              className="rounded-full hover:scale-110 transition-transform cursor-pointer"
+              size={24}
+            />
+          )}
         </div>
       </header>
 
@@ -208,13 +218,37 @@ const UploadPage = () => {
               value={summarySize}
               onValueChange={handleSummarySizeChange}
             >
-              <ToggleGroupItem variant="outline" value="5-7" className={`py-2 h-15 ${summarySize === "5-7" ? "!bg-blue-600 !text-white" : "!bg-background !text-primary"}`}>
+              <ToggleGroupItem
+                variant="outline"
+                value="5-7"
+                className={`py-2 h-15 ${
+                  summarySize === "5-7"
+                    ? "!bg-blue-600 !text-white"
+                    : "!bg-background !text-primary"
+                }`}
+              >
                 S (5 do 7 rečenica)
               </ToggleGroupItem>
-              <ToggleGroupItem variant="outline" value="7-10" className={`py-2 h-15 ${summarySize === "7-10" ? "!bg-blue-600 !text-white" : "!bg-background !text-primary"}`}>
+              <ToggleGroupItem
+                variant="outline"
+                value="7-10"
+                className={`py-2 h-15 ${
+                  summarySize === "7-10"
+                    ? "!bg-blue-600 !text-white"
+                    : "!bg-background !text-primary"
+                }`}
+              >
                 M (7 do 10 rečenica)
               </ToggleGroupItem>
-              <ToggleGroupItem variant="outline" value="10-15" className={`py-2 h-15 ${summarySize === "10-15" ? "!bg-blue-600 !text-white" : "!bg-background !text-primary"}`}>
+              <ToggleGroupItem
+                variant="outline"
+                value="10-15"
+                className={`py-2 h-15 ${
+                  summarySize === "10-15"
+                    ? "!bg-blue-600 !text-white"
+                    : "!bg-background !text-primary"
+                }`}
+              >
                 L (10 do 15 rečenica)
               </ToggleGroupItem>
             </ToggleGroup>
