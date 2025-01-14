@@ -119,7 +119,9 @@ const UploadPage = () => {
   };
 
   const handleSummarySizeChange = (value: string) => {
-    setSummarySize(value);
+    if (value) {
+      setSummarySize(value);
+    }
   };
 
   return (
@@ -151,27 +153,19 @@ const UploadPage = () => {
                hover:file:bg-blue-200 cursor-pointer"
           />
           <div className="w-full space-y-4 mt-4">
-            <span>Odaberi velicinu kratkog sadrzaja:</span>
-            <ToggleGroup type="single" value={summarySize} onValueChange={handleSummarySizeChange}>
-              <ToggleGroupItem
-              variant="outline"
-                value="5-7"
-                className="py-2"
-              >
+            <span>Odaberi velicinu sažetka:</span>
+            <ToggleGroup
+              type="single"
+              value={summarySize}
+              onValueChange={handleSummarySizeChange}
+            >
+              <ToggleGroupItem variant="outline" value="5-7" className={`py-2 h-15 ${summarySize === "5-7" ? "!bg-blue-600 !text-white" : ""}`}>
                 S (5 do 7 rečenica)
               </ToggleGroupItem>
-              <ToggleGroupItem
-              variant="outline"
-                value="7-10"
-                className="py-2"
-              >
+              <ToggleGroupItem variant="outline" value="7-10" className={`py-2 h-15 ${summarySize === "7-10" ? "!bg-blue-600 !text-white" : ""}`}>
                 M (7 do 10 rečenica)
               </ToggleGroupItem>
-              <ToggleGroupItem
-              variant="outline"
-                value="10-15"
-                className="py-2"
-              >
+              <ToggleGroupItem variant="outline" value="10-15" className={`py-2 h-15 ${summarySize === "10-15" ? "!bg-blue-600 !text-white" : ""}`}>
                 L (10 do 15 rečenica)
               </ToggleGroupItem>
             </ToggleGroup>
