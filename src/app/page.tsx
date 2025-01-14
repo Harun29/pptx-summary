@@ -16,7 +16,7 @@ const UploadPage = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [summarySize, setSummarySize] = useState("5-7");
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState("light");
 
   const handleCopy = () => {
     if (summary) {
