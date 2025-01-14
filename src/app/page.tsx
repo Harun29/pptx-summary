@@ -17,7 +17,15 @@ const UploadPage = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [summarySize, setSummarySize] = useState("5-7");
+  const [minSentences, setMinSentences] = useState("5");
+  const [maxSentences, setMaxSentences] = useState("7");
   const [theme, setTheme] = useState("light");
+
+  useEffect(() => {
+    const summarySizeArray = summarySize.split("-")
+    setMinSentences(summarySizeArray[0])
+    setMaxSentences(summarySizeArray[1])
+  }, [summarySize])
 
   const handleCopy = () => {
     if (summary) {
@@ -45,7 +53,7 @@ const UploadPage = () => {
             content: `
               Ti si stručnjak za pravljenje bilješki. Analiziraj sadržaj sljedeće prezentacije i sažmi ga prema sljedećoj strukturi:
               Cilj teme: Jasno navedi glavni cilj ili svrhu teme iz prezentacije. Koristi 1–2 rečenice koje sažimaju suštinu.
-              Sažetak: Sažmi ključne tačke prezentacije u ${summarySize} rečenica (5-7 rijeci u recenici maksimalno). Fokusiraj se na najvažnije informacije i ideje.
+              Sažetak: Sažmi ključne tačke prezentacije u MINIMALNO ${minSentences} i MAKSIMALNO ${maxSentences} rečenica (5-7 rijeci u svakoj recenici). Fokusiraj se na najvažnije informacije i ideje.
               Pitanja: Formuliši 3–4 pitanja koja mogu podstaći diskusiju ili pomoći u boljem razumijevanju prezentacije. Pitanja trebaju biti direktno vezana za sadržaj.
               Jasno/Nejasno:
               Jasno: Identificiraj 1–2 koncepta ili dijela koji su jasno objašnjeni i lako razumljivi.
