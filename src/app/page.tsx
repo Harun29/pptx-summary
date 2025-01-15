@@ -262,7 +262,7 @@ const UploadPage = () => {
           <div>
             <h1 className="text-3xl font-extrabold tracking-wide flex items-center justify-center mb-1">
               <NotebookText className="w-8 h-8 mr-2 inline-block" />
-              Čola Bilješke AI
+              Bilješke AI
             </h1>
             <p className="text-sm font-medium">
               Vaš AI asistent za brze sažetke
@@ -456,7 +456,7 @@ const UploadPage = () => {
       </main>
 
       <footer className="w-full py-4 bg-gray-800 text-white text-center text-sm">
-        <p>© 2025 Čola Bilješke AI. Sva prava zadržana.</p>
+        <p>© 2025 Bilješke AI. Sva prava zadržana.</p>
         <p>Napravljeno za FSK studente.</p>
       </footer>
     </div>
