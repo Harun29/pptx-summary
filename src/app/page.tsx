@@ -447,7 +447,7 @@ const UploadPage = () => {
                 onClick={() => generateDocx(summaries)}
               >
                 <Download className="w-4 h-4" />
-                Preuzmi Bilješke u wordu
+                Preuzmi bilješke u wordu
               </Button>
             </div>
           )}
