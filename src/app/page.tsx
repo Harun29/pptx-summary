@@ -9,7 +9,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Check, Copy, Expand, MoonIcon, SunIcon } from "lucide-react";
+import { Check, ClipboardPen, Copy, Download, Expand, MoonIcon, NotebookPen, NotebookText, SunIcon } from "lucide-react";
 import OpenAI from "openai";
 import { useState, useEffect } from "react";
 import { Document, Packer, Paragraph, TextRun } from "docx";
@@ -246,7 +246,8 @@ const UploadPage = () => {
       <header className="w-full py-4 bg-blue-600 text-white shadow-md relative">
         <div className="container mx-auto flex items-center justify-between px-6">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-wide">
+            <h1 className="text-3xl font-extrabold tracking-wide flex items-center justify-center mb-1">
+              <NotebookText className="w-8 h-8 mr-2 inline-block" />
               Čola Bilješke AI
             </h1>
             <p className="text-sm font-medium">
@@ -276,7 +277,7 @@ const UploadPage = () => {
             Postavite svoju prezentaciju
           </h1>
           <h2 className="text-xl font-medium text-primary text-center mb-6">
-            Dobijte bilješke u nekoliko sekundi
+            Generiši bilješke u nekoliko sekundi
           </h2>
 
           <input
@@ -353,11 +354,12 @@ const UploadPage = () => {
             disabled={loading}
             className="mt-6 w-full py-3 px-6 font-semibold"
           >
-            {loading ? "Obrada..." : "Dobij bilješke"}
+            <NotebookPen className="w-4 h-4 mr-2" />
+            {loading ? "Obrada..." : "Generiši bilješke"}
           </Button>
 
           {summaries.length > 0 && (
-            <div className={`mt-8 mb-4 ${isFullScreen && "!m-0 absolute left-0 right-0 bottom-0 top-0 bg-background rounded-2xl p-6 shadow-lg border border-border z-50 xl:!mx-40"}`}> 
+            <div className={`flex flex-col mt-8 mb-4 ${isFullScreen && "!m-0 absolute left-0 right-0 bottom-0 top-0 bg-background rounded-2xl p-6 shadow-lg border border-border z-50 xl:!mx-40"}`}> 
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-semibold text-muted-primary">
                   Bilješke
@@ -397,7 +399,9 @@ const UploadPage = () => {
                 <CarouselPrevious />
                 <CarouselNext />
               </Carousel>
-              <button onClick={() => generateDocx(summaries)}>Download Summaries</button>
+              <Button className="place-self-center justify-center" onClick={() => generateDocx(summaries)}>
+                <Download className="w-4 h-4" />
+                Download Summaries</Button>
             </div>
           )}
         </div>
