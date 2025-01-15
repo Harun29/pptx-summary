@@ -315,16 +315,17 @@ const UploadPage = () => {
             />
             {files.length > 0 && (
               <div>
-                <ul className="list-disc list-inside">
                   <h3 className="text-lg font-semibold text-muted-primary mt-4">
                     Odabrane datoteke:
                   </h3>
+                  <div className="max-h-52 overflow-y-auto">
                   {files.map((file, index) => (
-                    <li key={index} className="text-sm text-primary mt-2">
-                      {file.name}
-                    </li>
+                    <div key={index} className="text-sm text-primary mt-2 border-2 border-blue-500 p-1 rounded-xl text-blue-500">
+                      {file.name.substring(0,70)}
+                      {file.name.length > 70 && "..."}
+                    </div>
                   ))}
-                </ul>
+                  </div>
               </div>
             )}
             <div className="w-full space-y-4 mt-4">
