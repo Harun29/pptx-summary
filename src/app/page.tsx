@@ -294,7 +294,7 @@ const UploadPage = () => {
         >
           <div>
             <h1 className="text-3xl font-extrabold text-primary text-center mb-4">
-              Postavite svoju prezentaciju
+              Postavite svoje prezentacije
             </h1>
             <h2 className="text-xl font-medium text-primary text-center mb-6">
               Generiši bilješke u nekoliko sekundi
