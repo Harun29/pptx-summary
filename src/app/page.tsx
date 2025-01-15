@@ -9,11 +9,23 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Check, ClipboardPen, Copy, Download, Expand, MoonIcon, NotebookPen, NotebookText, SunIcon } from "lucide-react";
+import {
+  Check,
+  ClipboardPen,
+  Copy,
+  Download,
+  Expand,
+  MoonIcon,
+  NotebookPen,
+  NotebookText,
+  SunIcon,
+  Terminal,
+} from "lucide-react";
 import OpenAI from "openai";
 import { useState, useEffect } from "react";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { saveAs } from "file-saver";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
@@ -37,7 +49,7 @@ const UploadPage = () => {
   };
 
   useEffect(() => {
-    const newFilenames = files.map(file => file.name);
+    const newFilenames = files.map((file) => file.name);
     setFilenames(newFilenames);
   }, [files]);
 
@@ -46,42 +58,44 @@ const UploadPage = () => {
       sections: [
         {
           properties: {},
-          children: summaries.map((summary, index) => {
-            const lines = summary.split("\n").map((line, lineIndex) => {
-              if (line.startsWith("cilj teme:")) {
-                return new TextRun({
-                  text: line,
-                  bold: true,
-                  break: lineIndex > 0 ? 1 : 0, // Add a line break before each line except the first
-                });
-              } else {
-                return new TextRun({
-                  text: line,
-                  break: lineIndex > 0 ? 1 : 0, // Add a line break before each line except the first
-                });
-              }
-            });
-  
-            return [
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: filenames[index],
+          children: summaries
+            .map((summary, index) => {
+              const lines = summary.split("\n").map((line, lineIndex) => {
+                if (line.startsWith("cilj teme:")) {
+                  return new TextRun({
+                    text: line,
                     bold: true,
-                    size: 24,
-                    break: 1,
-                  }),
-                ],
-              }),
-              new Paragraph({
-                children: lines,
-              }),
-            ];
-          }).flat(),
+                    break: lineIndex > 0 ? 1 : 0, // Add a line break before each line except the first
+                  });
+                } else {
+                  return new TextRun({
+                    text: line,
+                    break: lineIndex > 0 ? 1 : 0, // Add a line break before each line except the first
+                  });
+                }
+              });
+
+              return [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: filenames[index],
+                      bold: true,
+                      size: 24,
+                      break: 1,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: lines,
+                }),
+              ];
+            })
+            .flat(),
         },
       ],
     });
-  
+
     Packer.toBlob(doc).then((blob) => {
       saveAs(blob, "summaries.docx");
     });
@@ -310,6 +324,7 @@ const UploadPage = () => {
           <div className="w-full space-y-4 mt-4">
             <span className="text-primary">Odaberi velicinu sažetka:</span>
             <ToggleGroup
+              disabled={loading}
               type="single"
               value={summarySize}
               onValueChange={handleSummarySizeChange}
@@ -357,9 +372,24 @@ const UploadPage = () => {
             <NotebookPen className="w-4 h-4 mr-2" />
             {loading ? "Obrada..." : "Generiši bilješke"}
           </Button>
+          {loading && (
+            <Alert className="mt-2">
+              <Terminal className="h-4 w-4" />
+              <AlertTitle>Pažnja!</AlertTitle>
+              <AlertDescription>
+                Ovo može potrajati nekoliko minuta ovisno o broju uploadanovih
+                fajlova.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {summaries.length > 0 && (
-            <div className={`flex flex-col mt-8 mb-4 ${isFullScreen && "!m-0 absolute left-0 right-0 bottom-0 top-0 bg-background rounded-2xl p-6 shadow-lg border border-border z-50 xl:!mx-40"}`}> 
+            <div
+              className={`flex flex-col mt-8 mb-4 ${
+                isFullScreen &&
+                "!m-0 absolute left-0 right-0 bottom-0 top-0 bg-background rounded-2xl p-6 shadow-lg border border-border z-50 xl:!mx-40"
+              }`}
+            >
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-semibold text-muted-primary">
                   Bilješke
@@ -388,7 +418,9 @@ const UploadPage = () => {
                         </button>
                         <textarea
                           key={index}
-                          className={`p-4 bg-muted rounded-lg text-sm text-primary w-full h-[300px] resize-none shadow-inner focus:outline-none border border-border mb-4 ${isFullScreen && "h-[550px] !text-lg"}`}
+                          className={`p-4 bg-muted rounded-lg text-sm text-primary w-full h-[300px] resize-none shadow-inner focus:outline-none border border-border mb-4 ${
+                            isFullScreen && "h-[550px] !text-lg"
+                          }`}
                           value={summary}
                           readOnly
                         />
@@ -399,9 +431,13 @@ const UploadPage = () => {
                 <CarouselPrevious />
                 <CarouselNext />
               </Carousel>
-              <Button className="place-self-center justify-center" onClick={() => generateDocx(summaries)}>
+              <Button
+                className="place-self-center justify-center"
+                onClick={() => generateDocx(summaries)}
+              >
                 <Download className="w-4 h-4" />
-                Download Summaries</Button>
+                Download Summaries
+              </Button>
             </div>
           )}
         </div>
