@@ -1,8 +1,15 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Check, Copy, MoonIcon, SunIcon } from "lucide-react";
+import { Check, Copy, Expand, MoonIcon, SunIcon } from "lucide-react";
 import OpenAI from "openai";
 import { useState, useEffect } from "react";
 
@@ -12,34 +19,49 @@ const openai = new OpenAI({
 });
 
 const UploadPage = () => {
-  const [file, setFile] = useState<File | null>(null);
-  const [summary, setSummary] = useState<string>("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [summaries, setSummaries] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [summarySize, setSummarySize] = useState("5-7");
   const [minSentences, setMinSentences] = useState("5");
   const [maxSentences, setMaxSentences] = useState("7");
   const [theme, setTheme] = useState("light");
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
+  const toggleFullScreen = () => {
+    setIsFullScreen(!isFullScreen);
+  };
   useEffect(() => {
     const summarySizeArray = summarySize.split("-");
     setMinSentences(summarySizeArray[0]);
     setMaxSentences(summarySizeArray[1]);
   }, [summarySize]);
 
-  const handleCopy = () => {
+  const handleCopy = (summary: string) => {
     if (summary) {
       navigator.clipboard.writeText(summary);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     }
+    return;
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFile(e.target.files[0]);
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files);
+      console.log("Selected files:", newFiles); // Debugging
+      setFiles((prevFiles) => [...prevFiles, ...newFiles]);
+    } else {
+      console.log("No files selected.");
     }
   };
+
+  useEffect(() => {
+    if (files.length > 0) {
+      console.log("Files:", files);
+    }
+  }, [files]);
 
   const getAiSummarisation = async (message: string) => {
     if (message.trim() === "") return;
@@ -94,33 +116,37 @@ const UploadPage = () => {
   };
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!files || files.length === 0) return;
 
     setLoading(true);
+    const newSummaries = [];
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
 
-      const response = await fetch(
-        "https://dcs-fastapi-production.up.railway.app/extractContent",
-        {
-          method: "POST",
-          body: formData,
+        const response = await fetch(
+          "https://dcs-fastapi-production.up.railway.app/extractContent",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to extract content");
         }
-      );
 
-      if (!response.ok) {
-        throw new Error("Failed to extract content");
+        const data = await response.json();
+        const extractedContent = data.content;
+
+        const aiResponse = await getAiSummarisation(extractedContent);
+        if (!aiResponse) {
+          throw new Error("Failed to get AI summary");
+        }
+        newSummaries.push(aiResponse as string);
       }
-
-      const data = await response.json();
-      const extractedContent = data.content;
-
-      const aiResponse = await getAiSummarisation(extractedContent);
-      if (!aiResponse) {
-        throw new Error("Failed to get AI summary");
-      }
-      setSummary(aiResponse as string);
+      setSummaries(newSummaries);
     } catch (error) {
       console.error("Error uploading file:", error);
     } finally {
@@ -190,7 +216,7 @@ const UploadPage = () => {
         </div>
       </header>
 
-      <main className="flex-grow flex items-center justify-center px-4 my-4">
+      <main className="flex-grow flex items-center justify-center px-4 my-4 relative">
         <div className="w-full max-w-lg p-6 bg-background rounded-2xl shadow-lg border border-border">
           <h1 className="text-3xl font-extrabold text-primary text-center mb-4">
             Postavite svoju prezentaciju
@@ -201,16 +227,31 @@ const UploadPage = () => {
 
           <input
             disabled={loading}
+            multiple
             type="file"
             accept=".pptx, .pdf"
             onChange={handleFileChange}
             className="block w-full text-sm text-muted-foreground 
-               file:py-3 file:px-4
-               file:rounded-lg file:border-0
-               file:text-sm file:font-semibold
-               file:bg-blue-100 file:text-blue-600
-               hover:file:bg-blue-200 cursor-pointer"
+             file:py-3 file:px-4
+             file:rounded-lg file:border-0
+             file:text-sm file:font-semibold
+             file:bg-blue-100 file:text-blue-600
+             hover:file:bg-blue-200 cursor-pointer"
           />
+          {files.length > 0 && (
+            <div>
+              <ul className="list-disc list-inside">
+                <h3 className="text-lg font-semibold text-muted-primary mt-4">
+                  Odabrane datoteke:
+                </h3>
+                {files.map((file, index) => (
+                  <li key={index} className="text-sm text-primary mt-2">
+                    {file.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div className="w-full space-y-4 mt-4">
             <span className="text-primary">Odaberi velicinu sažetka:</span>
             <ToggleGroup
@@ -261,28 +302,47 @@ const UploadPage = () => {
             {loading ? "Obrada..." : "Dobij bilješke"}
           </Button>
 
-          {summary && (
-            <div className="mt-8">
+          {summaries.length > 0 && (
+            <div className={`mt-8 mb-4 ${isFullScreen && "!m-0 absolute left-0 right-0 bottom-0 top-0 bg-background rounded-2xl p-6 shadow-lg border border-border z-50 xl:!mx-40"}`}> 
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-semibold text-muted-primary">
                   Bilješke
                 </h3>
                 <button
-                  onClick={handleCopy}
-                  className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
+                  onClick={toggleFullScreen}
+                  className="flex items-center gap-1 mb-1 px-3 py-1 text-sm text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
                 >
-                  {!copySuccess ? (
-                    <Copy className="w-4 h-4" />
-                  ) : (
-                    <Check className="w-4 h-4" />
-                  )}
+                  <Expand className="w-4 h-4" />
                 </button>
               </div>
-              <textarea
-                className="p-4 bg-muted rounded-lg text-sm text-primary w-full h-[300px] resize-none shadow-inner focus:outline-none border border-border"
-                value={summary}
-                readOnly
-              />
+              <Carousel>
+                <CarouselContent>
+                  {summaries.map((summary, index) => (
+                    <CarouselItem key={index}>
+                      <div className={`flex flex-col items-start`}>
+                        <button
+                          onClick={() => handleCopy(summary)}
+                          className="flex items-center gap-1 mb-1 px-3 py-1 text-sm text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
+                        >
+                          {!copySuccess ? (
+                            <Copy className="w-4 h-4" />
+                          ) : (
+                            <Check className="w-4 h-4" />
+                          )}
+                        </button>
+                        <textarea
+                          key={index}
+                          className={`p-4 bg-muted rounded-lg text-sm text-primary w-full h-[300px] resize-none shadow-inner focus:outline-none border border-border mb-4 ${isFullScreen && "h-[550px] !text-lg"}`}
+                          value={summary}
+                          readOnly
+                        />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
             </div>
           )}
         </div>
