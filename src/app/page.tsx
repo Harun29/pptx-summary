@@ -11,7 +11,6 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Check,
-  ClipboardPen,
   Copy,
   Download,
   Expand,
