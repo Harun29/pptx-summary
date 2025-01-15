@@ -12,6 +12,8 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Check, Copy, Expand, MoonIcon, SunIcon } from "lucide-react";
 import OpenAI from "openai";
 import { useState, useEffect } from "react";
+import { Document, Packer, Paragraph, TextRun } from "docx";
+import { saveAs } from "file-saver";
 
 const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
@@ -20,6 +22,7 @@ const openai = new OpenAI({
 
 const UploadPage = () => {
   const [files, setFiles] = useState<File[]>([]);
+  const [filenames, setFilenames] = useState<string[]>([]);
   const [summaries, setSummaries] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
@@ -31,6 +34,57 @@ const UploadPage = () => {
 
   const toggleFullScreen = () => {
     setIsFullScreen(!isFullScreen);
+  };
+
+  useEffect(() => {
+    const newFilenames = files.map(file => file.name);
+    setFilenames(newFilenames);
+  }, [files]);
+
+  const generateDocx = (summaries: string[]) => {
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          children: summaries.map((summary, index) => {
+            const lines = summary.split("\n").map((line, lineIndex) => {
+              if (line.startsWith("cilj teme:")) {
+                return new TextRun({
+                  text: line,
+                  bold: true,
+                  break: lineIndex > 0 ? 1 : 0, // Add a line break before each line except the first
+                });
+              } else {
+                return new TextRun({
+                  text: line,
+                  break: lineIndex > 0 ? 1 : 0, // Add a line break before each line except the first
+                });
+              }
+            });
+  
+            return [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: filenames[index],
+                    bold: true,
+                    size: 24,
+                    break: 1,
+                  }),
+                ],
+              }),
+              new Paragraph({
+                children: lines,
+              }),
+            ];
+          }).flat(),
+        },
+      ],
+    });
+  
+    Packer.toBlob(doc).then((blob) => {
+      saveAs(blob, "summaries.docx");
+    });
   };
   useEffect(() => {
     const summarySizeArray = summarySize.split("-");
@@ -343,6 +397,7 @@ const UploadPage = () => {
                 <CarouselPrevious />
                 <CarouselNext />
               </Carousel>
+              <button onClick={() => generateDocx(summaries)}>Download Summaries</button>
             </div>
           )}
         </div>
