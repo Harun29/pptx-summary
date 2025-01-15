@@ -285,7 +285,8 @@ const UploadPage = () => {
       </header>
 
       <main className="flex-grow flex items-center justify-center px-4 my-4 relative">
-        <div className="w-full max-w-lg p-6 bg-background rounded-2xl shadow-lg border border-border">
+        <div className={`w-full max-w-lg p-6 bg-background rounded-2xl shadow-lg border border-border ${summaries.length > 0 && "md:grid md:grid-cols-2 md:gap-10 md:max-w-5xl h-full"}`}>
+          <div>
           <h1 className="text-3xl font-extrabold text-primary text-center mb-4">
             Postavite svoju prezentaciju
           </h1>
@@ -381,6 +382,7 @@ const UploadPage = () => {
               </AlertDescription>
             </Alert>
           )}
+          </div>
 
           {summaries.length > 0 && (
             <div
@@ -417,8 +419,8 @@ const UploadPage = () => {
                         </button>
                         <textarea
                           key={index}
-                          className={`p-4 bg-muted rounded-lg text-sm text-primary w-full h-[300px] resize-none shadow-inner focus:outline-none border border-border mb-4 ${
-                            isFullScreen && "h-[550px] !text-lg"
+                          className={`p-4 bg-muted rounded-lg text-sm text-primary w-full h-[550px] resize-none shadow-inner focus:outline-none border border-border mb-4 ${
+                            isFullScreen && "!text-lg"
                           }`}
                           value={summary}
                           readOnly
