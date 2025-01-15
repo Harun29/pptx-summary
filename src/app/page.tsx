@@ -14,6 +14,7 @@ import {
   Copy,
   Download,
   Expand,
+  Minimize,
   MoonIcon,
   NotebookPen,
   NotebookText,
@@ -285,103 +286,108 @@ const UploadPage = () => {
       </header>
 
       <main className="flex-grow flex items-center justify-center px-4 my-4 relative">
-        <div className={`w-full max-w-lg p-6 bg-background rounded-2xl shadow-lg border border-border ${summaries.length > 0 && "md:grid md:grid-cols-2 md:gap-10 md:max-w-5xl h-full"}`}>
+        <div
+          className={`w-full max-w-lg p-6 bg-background rounded-2xl shadow-lg border border-border ${
+            summaries.length > 0 &&
+            "md:grid md:grid-cols-2 md:gap-10 md:max-w-5xl h-full"
+          }`}
+        >
           <div>
-          <h1 className="text-3xl font-extrabold text-primary text-center mb-4">
-            Postavite svoju prezentaciju
-          </h1>
-          <h2 className="text-xl font-medium text-primary text-center mb-6">
-            Generiši bilješke u nekoliko sekundi
-          </h2>
+            <h1 className="text-3xl font-extrabold text-primary text-center mb-4">
+              Postavite svoju prezentaciju
+            </h1>
+            <h2 className="text-xl font-medium text-primary text-center mb-6">
+              Generiši bilješke u nekoliko sekundi
+            </h2>
 
-          <input
-            disabled={loading}
-            multiple
-            type="file"
-            accept=".pptx, .pdf"
-            onChange={handleFileChange}
-            className="block w-full text-sm text-muted-foreground 
+            <input
+              disabled={loading}
+              multiple
+              type="file"
+              accept=".pptx, .pdf"
+              onChange={handleFileChange}
+              className="block w-full text-sm text-muted-foreground 
              file:py-3 file:px-4
              file:rounded-lg file:border-0
              file:text-sm file:font-semibold
              file:bg-blue-100 file:text-blue-600
              hover:file:bg-blue-200 cursor-pointer"
-          />
-          {files.length > 0 && (
-            <div>
-              <ul className="list-disc list-inside">
-                <h3 className="text-lg font-semibold text-muted-primary mt-4">
-                  Odabrane datoteke:
-                </h3>
-                {files.map((file, index) => (
-                  <li key={index} className="text-sm text-primary mt-2">
-                    {file.name}
-                  </li>
-                ))}
-              </ul>
+            />
+            {files.length > 0 && (
+              <div>
+                <ul className="list-disc list-inside">
+                  <h3 className="text-lg font-semibold text-muted-primary mt-4">
+                    Odabrane datoteke:
+                  </h3>
+                  {files.map((file, index) => (
+                    <li key={index} className="text-sm text-primary mt-2">
+                      {file.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div className="w-full space-y-4 mt-4">
+              <span className="text-primary">Odaberi velicinu sažetka:</span>
+              <ToggleGroup
+                disabled={loading}
+                type="single"
+                value={summarySize}
+                onValueChange={handleSummarySizeChange}
+              >
+                <ToggleGroupItem
+                  variant="outline"
+                  value="5-7"
+                  className={`py-2 h-15 ${
+                    summarySize === "5-7"
+                      ? "!bg-blue-600 !text-white"
+                      : "!bg-background !text-primary"
+                  }`}
+                >
+                  S (5 do 7 rečenica)
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  variant="outline"
+                  value="7-10"
+                  className={`py-2 h-15 ${
+                    summarySize === "7-10"
+                      ? "!bg-blue-600 !text-white"
+                      : "!bg-background !text-primary"
+                  }`}
+                >
+                  M (7 do 10 rečenica)
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  variant="outline"
+                  value="10-15"
+                  className={`py-2 h-15 ${
+                    summarySize === "10-15"
+                      ? "!bg-blue-600 !text-white"
+                      : "!bg-background !text-primary"
+                  }`}
+                >
+                  L (10 do 15 rečenica)
+                </ToggleGroupItem>
+              </ToggleGroup>
             </div>
-          )}
-          <div className="w-full space-y-4 mt-4">
-            <span className="text-primary">Odaberi velicinu sažetka:</span>
-            <ToggleGroup
+            <Button
+              onClick={handleUpload}
               disabled={loading}
-              type="single"
-              value={summarySize}
-              onValueChange={handleSummarySizeChange}
+              className="mt-6 w-full py-3 px-6 font-semibold"
             >
-              <ToggleGroupItem
-                variant="outline"
-                value="5-7"
-                className={`py-2 h-15 ${
-                  summarySize === "5-7"
-                    ? "!bg-blue-600 !text-white"
-                    : "!bg-background !text-primary"
-                }`}
-              >
-                S (5 do 7 rečenica)
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                variant="outline"
-                value="7-10"
-                className={`py-2 h-15 ${
-                  summarySize === "7-10"
-                    ? "!bg-blue-600 !text-white"
-                    : "!bg-background !text-primary"
-                }`}
-              >
-                M (7 do 10 rečenica)
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                variant="outline"
-                value="10-15"
-                className={`py-2 h-15 ${
-                  summarySize === "10-15"
-                    ? "!bg-blue-600 !text-white"
-                    : "!bg-background !text-primary"
-                }`}
-              >
-                L (10 do 15 rečenica)
-              </ToggleGroupItem>
-            </ToggleGroup>
-          </div>
-          <Button
-            onClick={handleUpload}
-            disabled={loading}
-            className="mt-6 w-full py-3 px-6 font-semibold"
-          >
-            <NotebookPen className="w-4 h-4 mr-2" />
-            {loading ? "Obrada..." : "Generiši bilješke"}
-          </Button>
-          {loading && (
-            <Alert className="mt-2">
-              <Terminal className="h-4 w-4" />
-              <AlertTitle>Pažnja!</AlertTitle>
-              <AlertDescription>
-                Ovo može potrajati nekoliko minuta ovisno o broju uploadanovih
-                fajlova.
-              </AlertDescription>
-            </Alert>
-          )}
+              <NotebookPen className="w-4 h-4 mr-2" />
+              {loading ? "Obrada..." : "Generiši bilješke"}
+            </Button>
+            {loading && (
+              <Alert className="mt-2">
+                <Terminal className="h-4 w-4" />
+                <AlertTitle>Pažnja!</AlertTitle>
+                <AlertDescription>
+                  Ovo može potrajati nekoliko minuta ovisno o broju uploadanovih
+                  fajlova.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
 
           {summaries.length > 0 && (
@@ -399,7 +405,11 @@ const UploadPage = () => {
                   onClick={toggleFullScreen}
                   className="flex items-center gap-1 mb-1 px-3 py-1 text-sm text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
                 >
-                  <Expand className="w-4 h-4" />
+                  {!isFullScreen ? (
+                    <Expand className="w-4 h-4" />
+                  ) : (
+                    <Minimize className="w-4 h-4" />
+                  )}
                 </button>
               </div>
               <Carousel>
