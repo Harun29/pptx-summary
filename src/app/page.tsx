@@ -14,6 +14,7 @@ import {
   Copy,
   Download,
   Expand,
+  LoaderCircle,
   Minimize,
   MoonIcon,
   NotebookPen,
@@ -26,6 +27,7 @@ import { useState, useEffect } from "react";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { saveAs } from "file-saver";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 
 const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
@@ -43,6 +45,8 @@ const UploadPage = () => {
   const [maxSentences, setMaxSentences] = useState("7");
   const [theme, setTheme] = useState("light");
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [progress, setProgress] = useState<number>(0);
+  const [filesDone, setFilesDone] = useState<number>(0);
 
   const toggleFullScreen = () => {
     setIsFullScreen(!isFullScreen);
@@ -187,9 +191,14 @@ const UploadPage = () => {
     if (!files || files.length === 0) return;
 
     setLoading(true);
+    setProgress(0);
+    setFilesDone(0);
     const newSummaries = [];
+    const totalFiles = files.length;
+
     try {
-      for (const file of files) {
+      for (let i = 0; i < totalFiles; i++) {
+        const file = files[i];
         const formData = new FormData();
         formData.append("file", file);
 
@@ -213,6 +222,10 @@ const UploadPage = () => {
           throw new Error("Failed to get AI summary");
         }
         newSummaries.push(aiResponse as string);
+
+        // Update progress
+        setFilesDone((prevFilesDone) => prevFilesDone + 1);
+        setProgress(((i + 1) / totalFiles) * 100);
       }
       setSummaries(newSummaries);
     } catch (error) {
@@ -376,9 +389,17 @@ const UploadPage = () => {
               disabled={loading}
               className="mt-6 w-full py-3 px-6 font-semibold"
             >
-              <NotebookPen className="w-4 h-4 mr-2" />
+              {!loading ? <NotebookPen className="w-4 h-4 mr-2" />
+            : <LoaderCircle className="animate-spin w-4 h-4 mr-2" />  
+            }
               {loading ? "Obrada..." : "Generiši bilješke"}
             </Button>
+            {loading &&
+            <div className="mt-4 flex flex-col text-muted-foreground text-sm">
+              <span>{filesDone}/{files.length} bilješki obrađeno</span>
+              <Progress value={progress} />
+            </div> 
+            }
             {loading && (
               <Alert className="mt-2">
                 <Terminal className="h-4 w-4" />
