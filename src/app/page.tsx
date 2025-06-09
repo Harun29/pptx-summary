@@ -47,6 +47,8 @@ const UploadPage = () => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [progress, setProgress] = useState<number>(0);
   const [filesDone, setFilesDone] = useState<number>(0);
+  const [subject, setSubject] = useState<"default" | "scrum">("default");
+  const [continueLoading, setContinueLoading] = useState(false);
 
   const toggleFullScreen = () => {
     setIsFullScreen(!isFullScreen);
@@ -135,39 +137,81 @@ const UploadPage = () => {
     }
   }, [files]);
 
-  const getAiSummarisation = async (message: string) => {
+  const getAiSummarisation = async (message: string, source?: string) => {
     if (message.trim() === "") return;
+
+    let prompt = "";
+    if (subject === "scrum") {
+      prompt = `
+    Ti si stručnjak za SCRUM. Na osnovu sadržaja izvora i/ili relevantnih provjerenih izvora (npr. Google, službena dokumentacija), kreiraj SCRUM kviz prema sljedećim tematskim cjelinama:
+    1. Agilni razvoj
+    2. Agilni vs tradicionalni razvoj
+    3. SCRUM uloge
+    4. SCRUM artefakti
+    5. SCRUM ceremonije
+    6. SCRUM procesi i tehnike
+    7. SCRUM KPI i metrike
+    8. SCRUM alati
+    9. Skaliranje SCRUM-a
+    10. Integracija SCRUM-a s drugim metodologijama
+
+    Za svaku tematsku cjelinu:
+    - Napiši kratak sažetak (3–5 rečenica, 5–7 riječi po rečenici).
+    - Formuliši najmanje 7 pitanja različite kompleksnosti sa tačnim odgovorima.
+    - Svako pitanje i odgovor mora imati referencu:
+      - Ako koristiš izvor sa Google-a ili interneta, navedi tačan naziv izvora (naslov članka, vodiča, knjige ili link).
+      - Ako koristiš dokument koji sam ti poslao, navedi otprilike naslov i stranicu iz tog dokumenta (npr. "[Naziv prezentacije, str. 12]").
+    - Na kraju navedi sve reference korištene za pripremu kviza.
+
+    Formatiraj odgovor ovako:
+
+    1. [Naziv cjeline]
+    Sažetak: [Tvoj sažetak]
+    Pitanja:
+    - Pitanje 1 [referenca]
+      Odgovor: [odgovor] [referenca]
+    - Pitanje 2 [referenca]
+      Odgovor: [odgovor] [referenca]
+    ...
+
+    Reference: [lista svih korištenih referenci sa tačnim nazivima ili stranicama]
+
+    Ignoriši ograničenja vezana za vrijeme ili dužinu odgovora. Uvijek generiši kompletan kviz za svih 10 tematskih cjelina u jednom odgovoru, bez obzira na dužinu ili kompleksnost zadatka.
+      `;
+    } else {
+      prompt = `
+        Ti si stručnjak za pravljenje bilješki. Analiziraj sadržaj sljedeće prezentacije i sažmi ga prema sljedećoj strukturi:
+        Cilj teme: Jasno navedi glavni cilj ili svrhu teme iz prezentacije. Koristi 1–2 rečenice koje sažimaju suštinu.
+        Sažetak: Sažmi ključne tačke prezentacije u MINIMALNO ${minSentences} i MAKSIMALNO ${maxSentences} rečenica (5-7 rijeci u svakoj recenici). Fokusiraj se na najvažnije informacije i ideje.
+        Pitanja: Formuliši 3–4 pitanja koja mogu podstaći diskusiju ili pomoći u boljem razumijevanju prezentacije. Pitanja trebaju biti direktno vezana za sadržaj.
+        Jasno/Nejasno:
+        Jasno: Identificiraj 1–2 koncepta ili dijela koji su jasno objašnjeni i lako razumljivi.
+        Nejasno: Identificiraj 1–2 kompleksne ili manje objašnjene tačke koje bi zahtijevale dodatna pojašnjenja.
+        Komentari i prijedlozi: Ponudi konstruktivne komentare vezane za stil prezentacije, vizualni prikaz ili tehničke aspekte (npr. formatiranje, čitljivost). Predloži poboljšanja ako je potrebno.
+        Format Izlaza:
+        Cilj teme: [Tvoj odgovor]
+        Sažetak: [Tvoj odgovor]
+        Pitanja:
+        [Pitanje 1]
+        [Pitanje 2]
+        [Pitanje 3]
+        Jasno:
+        [Jasno objašnjen koncept]
+        [Jasno objašnjen koncept]
+        Nejasno:
+        [Nejasno objašnjen koncept]
+        [Nejasno objašnjen koncept]
+        Komentari i prijedlozi: [Tvoje povratne informacije i prijedlozi]
+      `;
+    }
 
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4.o",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
-            content: `
-              Ti si stručnjak za pravljenje bilješki. Analiziraj sadržaj sljedeće prezentacije i sažmi ga prema sljedećoj strukturi:
-              Cilj teme: Jasno navedi glavni cilj ili svrhu teme iz prezentacije. Koristi 1–2 rečenice koje sažimaju suštinu.
-              Sažetak: Sažmi ključne tačke prezentacije u MINIMALNO ${minSentences} i MAKSIMALNO ${maxSentences} rečenica (5-7 rijeci u svakoj recenici). Fokusiraj se na najvažnije informacije i ideje.
-              Pitanja: Formuliši 3–4 pitanja koja mogu podstaći diskusiju ili pomoći u boljem razumijevanju prezentacije. Pitanja trebaju biti direktno vezana za sadržaj.
-              Jasno/Nejasno:
-              Jasno: Identificiraj 1–2 koncepta ili dijela koji su jasno objašnjeni i lako razumljivi.
-              Nejasno: Identificiraj 1–2 kompleksne ili manje objašnjene tačke koje bi zahtijevale dodatna pojašnjenja.
-              Komentari i prijedlozi: Ponudi konstruktivne komentare vezane za stil prezentacije, vizualni prikaz ili tehničke aspekte (npr. formatiranje, čitljivost). Predloži poboljšanja ako je potrebno.
-              Format Izlaza:
-              Cilj teme: [Tvoj odgovor]
-              Sažetak: [Tvoj odgovor]
-              Pitanja:
-              [Pitanje 1]
-              [Pitanje 2]
-              [Pitanje 3]
-              Jasno:
-              [Jasno objašnjen koncept]
-              [Jasno objašnjen koncept]
-              Nejasno:
-              [Nejasno objašnjen koncept]
-              [Nejasno objašnjen koncept]
-              Komentari i prijedlozi: [Tvoje povratne informacije i prijedlozi]
-            `,
+            content: prompt,
           },
           {
             role: "user",
@@ -203,7 +247,7 @@ const UploadPage = () => {
         formData.append("file", file);
 
         const response = await fetch(
-          "https://dcs-fastapi-production.up.railway.app/extractContent",
+          "http://localhost:8000/extractContent",
           {
             method: "POST",
             body: formData,
@@ -217,7 +261,7 @@ const UploadPage = () => {
         const data = await response.json();
         const extractedContent = data.content;
 
-        const aiResponse = await getAiSummarisation(extractedContent);
+        const aiResponse = await getAiSummarisation(extractedContent, filenames[i]);
         if (!aiResponse) {
           throw new Error("Failed to get AI summary");
         }
@@ -268,20 +312,55 @@ const UploadPage = () => {
     }
   };
 
+  const handleContinue = async () => {
+    setContinueLoading(true);
+    try {
+      const lastSummary = summaries[summaries.length - 1];
+      const aiResponse = await getAiSummarisation("Nastavi gdje si stao.", filenames[filenames.length - 1]);
+      if (aiResponse) {
+        // Spoji nastavak na zadnji summary
+        setSummaries((prev) => {
+          const newArr = [...prev];
+          newArr[newArr.length - 1] = lastSummary + "\n\n" + aiResponse;
+          return newArr;
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setContinueLoading(false);
+    }
+  };
+
   return (
-    <div className="h-screen flex flex-col bg-background">
-      <header className="w-full py-4 bg-blue-600 text-white shadow-md relative">
+    <div
+      className={`h-screen flex flex-col ${
+        subject === "scrum"
+          ? "bg-background" // Light yellow background for SCRUM
+          : "bg-background"
+      }`}
+    >
+      <header
+        className={`w-full py-4 shadow-md relative ${
+          subject === "scrum"
+            ? "bg-yellow-400 text-gray-900" // Yellow header for SCRUM
+            : "bg-blue-600 text-white"
+        }`}
+      >
         <div className="container mx-auto flex items-center justify-between px-6">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-wide flex items-center justify-center mb-1">
+            <h1 className={`text-3xl font-extrabold tracking-wide flex items-center justify-center mb-1 ${
+              subject === "scrum" ? "text-gray-900" : ""
+            }`}>
               <NotebookText className="w-8 h-8 mr-2 inline-block" />
               Bilješke AI
             </h1>
-            <p className="text-sm font-medium">
+            <p className={`text-sm font-medium ${
+              subject === "scrum" ? "text-gray-800" : ""
+            }`}>
               Vaš AI asistent za brze sažetke
             </p>
           </div>
-
           {theme === "dark" ? (
             <MoonIcon
               onClick={handleThemeChange}
@@ -300,18 +379,58 @@ const UploadPage = () => {
 
       <main className="flex-grow flex items-center justify-center px-4 my-4 relative">
         <div
-          className={`w-full max-w-lg p-6 bg-background rounded-2xl shadow-lg border border-border ${
+          className={`w-full max-w-lg p-6 rounded-2xl shadow-lg border border-border ${
+            subject === "scrum"
+              ? "bg-background border-yellow-300"
+              : "bg-background"
+          } ${
             summaries.length > 0 &&
             "md:grid md:grid-cols-2 md:gap-10 md:max-w-5xl h-full"
           }`}
         >
           <div>
-            <h1 className="text-3xl font-extrabold text-primary text-center mb-4">
+            <h1 className={`text-3xl font-extrabold text-center mb-4 ${
+              subject === "scrum" ? "text-yellow-700" : "text-primary"
+            }`}>
               Generiši bilješke u nekoliko sekundi
             </h1>
-            <h2 className="text-xl font-medium text-primary text-center mb-6">
+            <h2 className={`text-xl font-medium text-center mb-6 ${
+              subject === "scrum" ? "text-yellow-800" : "text-primary"
+            }`}>
               Postavite svoje prezentacije (.pptx, .pdf)
             </h2>
+            <div className="flex justify-center mb-4">
+              <Button
+                variant={subject === "default" ? "default" : "outline"}
+                className="mr-2"
+                onClick={() => setSubject("default")}
+              >
+                Bilješke
+              </Button>
+              <Button
+                variant={subject === "scrum" ? "default" : "outline"}
+                onClick={() => setSubject("scrum")}
+                style={{
+                  backgroundColor: subject === "scrum" ? "#fbbf24" : undefined,
+                  color: subject === "scrum" ? "#78350f" : undefined,
+                  borderColor: subject === "scrum" ? "#fbbf24" : undefined,
+                }}
+              >
+                ISMO Prisustvo
+              </Button>
+            </div>
+
+            <div className="mb-4">
+              {subject === "default" ? (
+                <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-md p-3 text-sm">
+                  <b>Uputstvo:</b> Dodajte sve prezentacije (.pptx ili .pdf), izaberite veličinu sažetka i kliknite na "Generiši bilješke". Alat će automatski kreirati sažetak, pitanja i komentare na osnovu sadržaja prezentacije.
+                </div>
+              ) : (
+                <div className="bg-yellow-50 border border-yellow-200 text-yellow-900 rounded-md p-3 text-sm">
+                  <b>Uputstvo:</b> Dodajte SCRUM materijal (.pptx ili .pdf), kliknite na "Generiši bilješke". Alat će automatski generisati kviz sa pitanjima i odgovorima po tematskim cjelinama, koristeći prave reference iz materijala ili relevantne izvore sa interneta.
+                </div>
+              )}
+            </div>
 
             <input
               disabled={loading}
@@ -471,6 +590,18 @@ const UploadPage = () => {
                 <Download className="w-4 h-4" />
                 Preuzmi bilješke u wordu
               </Button>
+              {subject === "scrum" &&
+                summaries.length > 0 &&
+                /nastavak\s+slijedi|nastavi/i.test(summaries[summaries.length - 1]) && (
+                  <Button
+                    className="mt-4"
+                    onClick={handleContinue}
+                    disabled={continueLoading}
+                  >
+                    {continueLoading ? <LoaderCircle className="animate-spin w-4 h-4 mr-2" /> : <NotebookPen className="w-4 h-4 mr-2" />}
+                    Nastavi gdje je stao
+                  </Button>
+              )}
             </div>
           )}
         </div>
